@@ -1,8 +1,10 @@
 all: help
 
+prefix=/usr
 EXTERNALS=externals
-LIB_PATH=/usr/share/pixie/
-DESTDIR=/
+LIB_PATH=$(prefix)/share/pixie/
+BIN_PATH=$(prefix)/bin/pixie
+DESTDIR=
 
 PYTHON ?= python2
 PYTHONPATH=$$PYTHONPATH:$(EXTERNALS)/pypy
@@ -86,9 +88,9 @@ standard_path.py:
 	echo "standard_path = \"$(LIB_PATH)\"" > $@
 
 install: pixie-vm
-	mkdir -p $(DESTDIR)usr/bin $(DESTDIR)$(LIB_PATH)
-	install pixie-vm $(DESTDIR)usr/bin/pixie
-	install pixie $(DESTDIR)$(LIB_PATH)/pixie
+	install -D pixie-vm $(DESTDIR)$(BIN_PATH)
+	install -d $(DESTDIR)$(LIB_PATH)
+	cp -R pixie $(DESTDIR)$(LIB_PATH)
 
 compile_tests:
 	find "tests" -name "*.pxi" | xargs -L1 ./pixie-vm -l "tests" -c
