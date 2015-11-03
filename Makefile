@@ -1,6 +1,7 @@
 all: help
 
 EXTERNALS=externals
+LIB_PATH=/usr/share/pixie/
 
 PYTHON ?= python2
 PYTHONPATH=$$PYTHONPATH:$(EXTERNALS)/pypy
@@ -18,17 +19,17 @@ help:
 	@echo "make build_no_jit           - build without jit"
 	@echo "make fetch_externals	   - download and unpack external deps"
 
-build_with_jit: fetch_externals
+build_with_jit: fetch_externals standard_path.py
 	@if [ ! -d /usr/local/include/boost -a ! -d /usr/include/boost ] ; then echo "Boost C++ Library not found" && false; fi && \
 	$(PYTHON) $(EXTERNALS)/pypy/rpython/bin/rpython $(COMMON_BUILD_OPTS) --opt=jit target.py && \
 	make compile_basics
 
-build_no_jit: fetch_externals
+build_no_jit: fetch_externals standard_path.py
 	@if [ ! -d /usr/local/include/boost -a ! -d /usr/include/boost ] ; then echo "Boost C++ Library not found" && false; fi && \
 	$(PYTHON) $(EXTERNALS)/pypy/rpython/bin/rpython $(COMMON_BUILD_OPTS) target.py && \
 	make compile_basics
 
-build_no_jit_shared: fetch_externals
+build_no_jit_shared: fetch_externals standard_path.py
 	@if [ ! -d /usr/local/include/boost -a ! -d /usr/include/boost ] ; then echo "Boost C++ Library not found" && false; fi && \
 	$(PYTHON) $(EXTERNALS)/pypy/rpython/bin/rpython $(COMMON_BUILD_OPTS) --shared target.py && \
 	make compile_basics
@@ -80,6 +81,14 @@ run_built_tests: pixie-vm
 run_interpreted_tests: target.py
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) target.py run-tests.pxi
 
+standard_path.py:
+	echo "standard_path = \"$(LIB_PATH)\"" > $@
+
+install: pixie-vm
+	mkdir -p /usr/bin /usr/share/pixie
+	install pixie-vm /usr/bin/pixie
+	install pixie $(LIB_PATH)/pixie
+
 compile_tests:
 	find "tests" -name "*.pxi" | xargs -L1 ./pixie-vm -l "tests" -c
 
@@ -95,3 +104,5 @@ clean: clean_pxic
 	rm -rf ./externals
 	rm -f ./pixie-vm
 	rm -f ./*.pyc
+
+.PHONY: standard_path.py compile_tests compile_src clean_pxic clean install

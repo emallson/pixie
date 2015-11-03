@@ -11,6 +11,7 @@ from pixie.vm.primitives import nil
 from pixie.vm.atom import Atom
 from pixie.vm.persistent_vector import EMPTY as EMPTY_VECTOR
 from pixie.vm.util import unicode_from_utf8, unicode_to_utf8
+from standard_path import standard_path
 import sys
 import os
 import os.path as path
@@ -257,6 +258,7 @@ def init_load_path(self_path):
     # just for run_load_stdlib (global variables can't be assigned to)
     load_path.set_root(rt.wrap(self_path))
     add_env_to_load_path()
+    LOAD_PATHS.set_root(Atom(rt.conj(rt.deref(LOAD_PATHS.deref()), rt.wrap(standard_path))))
 
 def dirname(path):
     return rpath.sep.join(path.split(rpath.sep)[0:-1])
