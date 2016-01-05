@@ -19,8 +19,8 @@ bindir=$(exec_prefix)/bin
 datarootdir=$(prefix)/share
 datadir=$(datarootdir)
 
-LIB_PATH=$(prefix)/share/pixie
-BIN_PATH=$(prefix)/bin/pixie
+LIB_PATH=$(datadir)/pixie
+BIN_PATH=$(bindir)/pixie
 
 help:
 	@echo "make help                   - display this message"
