@@ -11,6 +11,7 @@ from pixie.vm.primitives import nil
 from pixie.vm.atom import Atom
 from pixie.vm.persistent_vector import EMPTY as EMPTY_VECTOR
 from pixie.vm.util import unicode_from_utf8, unicode_to_utf8
+import build_config
 import sys
 import os
 import os.path as path
@@ -157,7 +158,8 @@ def init_vm(progname):
 
     init_load_path(progname)
     load_stdlib()
-    add_to_load_paths(".")
+    if not build_config.USE_GLOBAL_LOADPATH:
+        add_to_load_paths(".")
 
 def entry_point(args):
     try:
@@ -236,6 +238,15 @@ def add_to_load_paths(path):
     rt.reset_BANG_(LOAD_PATHS.deref(), rt.conj(rt.deref(LOAD_PATHS.deref()), rt.wrap(path)))
 
 
+def add_env_to_load_path():
+    pp = os.environ.get("PIXIE_PATH")
+    if pp is not None:
+        LP = rt.deref(LOAD_PATHS.deref())
+        for path in pp.split(":"):
+            LP = rt.conj(LP, rt.wrap(path))
+        LOAD_PATHS.set_root(Atom(LP))
+
+
 def init_load_path(self_path):
     if not path.isfile(self_path):
         self_path = find_in_path(self_path)
@@ -245,9 +256,14 @@ def init_load_path(self_path):
     self_path = dirname(rpath.rabspath(self_path))
 
     # runtime is not loaded yet, so we have to do it manually
-    LOAD_PATHS.set_root(Atom(EMPTY_VECTOR.conj(rt.wrap(self_path))))
-    # just for run_load_stdlib (global variables can't be assigned to)
-    load_path.set_root(rt.wrap(self_path))
+    if build_config.USE_GLOBAL_LOADPATH:
+        LOAD_PATHS.set_root(Atom(EMPTY_VECTOR.conj(rt.wrap(build_config.STDLIB_LOADPATH))))
+        load_path.set_root(rt.wrap(build_config.STDLIB_LOADPATH))
+    else:
+        LOAD_PATHS.set_root(Atom(EMPTY_VECTOR.conj(rt.wrap(self_path))))
+        # just for run_load_stdlib (global variables can't be assigned to)
+        load_path.set_root(rt.wrap(self_path))
+    add_env_to_load_path()
 
 def dirname(path):
     return rpath.sep.join(path.split(rpath.sep)[0:-1])
