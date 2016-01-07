@@ -59,8 +59,6 @@ build_preload_no_jit: fetch_externals build_config.py
 build: fetch_externals build_config.py
 	$(PYTHON) $(EXTERNALS)/pypy/rpython/bin/rpython $(COMMON_BUILD_OPTS) $(JIT_OPTS) $(TARGET_OPTS)
 
-# build configuration
-# should probably look into automake?
 build_config.py:
 	echo "USE_GLOBAL_LOADPATH = ${USE_GLOBAL_LOADPATH}" > $@
 	echo "STDLIB_LOADPATH = \"${LIB_PATH}\"" >> $@
